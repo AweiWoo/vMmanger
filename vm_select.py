@@ -18,7 +18,16 @@ clonespec = vim.vm.CloneSpec()
 maps = vim.vm.customization.AdapterMapping()
 maps.adapter = vim.vm.customization.IPSettings()
 
-print(help(vim.vm.customization))
+print(dir(vim.vm.customization))
+#container = pchelper.get_container_view(si,[vim.Datastore])
+
+#print(vim.VirtualMachineNetworkInfo)
+
+
+
+#print(container.view)
+
+# print(help(vim.vm.customization))
 # print(maps)
 # print(maps.adapter)
 

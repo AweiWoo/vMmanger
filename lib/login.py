@@ -1,3 +1,7 @@
+#!/usr/bin/python
+# -*- coding:UTF-8 -*-
+# author: wwu
+
 from collections import namedtuple
 from lib.service_instance import connect
 

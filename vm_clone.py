@@ -50,6 +50,22 @@ def update_vm_customspec(vm_ip=None,vm_subnet=None,vm_gateway=None,vm_dns=None,v
 
     return customspec
 
+def update_resource_conf():
+    #调整cpu和内存大小
+    pass
+
+def update_nic():
+    #修改网卡
+    pass
+
+def add_nic():
+    #添加网卡
+    pass
+
+def add_disk():
+    #添加磁盘
+    pass
+
 def clone_vm(content,**args):
     vmargs = VM_ARGS(**args)
     #模板

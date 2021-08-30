@@ -36,6 +36,7 @@ def collect_properties(si, view_ref, obj_type, path_set=None,
 
     """
     collector = si.content.propertyCollector
+    #collector = si.RetrieveContent.propertyCollector
 
     # Create object specification to define the starting point of
     # inventory navigation

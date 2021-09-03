@@ -10,15 +10,23 @@ content = si.RetrieveContent()
 datacenter_name = "cenboomh"
 datacenter = pchelper.get_obj(content,[vim.Datacenter],datacenter_name)
 resoucepool = pchelper.get_all_obj(content,[vim.ResourcePool])
+
+print(list(resoucepool)[0])
+
 datastore = pchelper.get_all_obj(content,[vim.Datastore])
 clusterinfo = pchelper.get_all_obj(content,[vim.ClusterComputeResource])
+print(clusterinfo)
+cluster = pchelper.search_for_obj(content,[vim.ClusterComputeResource],"devops")
 pod = pchelper.get_all_obj(content,[vim.StoragePod])
 relospec = vim.vm.RelocateSpec()
 clonespec = vim.vm.CloneSpec()
 maps = vim.vm.customization.AdapterMapping()
 maps.adapter = vim.vm.customization.IPSettings()
 
-print(dir(vim.vm.customization))
+# print(cluster.resourcePool.name)
+
+
+#print(dir(vim.vm))
 #container = pchelper.get_container_view(si,[vim.Datastore])
 
 #print(vim.VirtualMachineNetworkInfo)
@@ -36,8 +44,6 @@ print(dir(vim.vm.customization))
 
 # print('\n------------资源池-----------')
 # print(dir(resoucepool))
-# print(type(resoucepool))
-# print(list(resoucepool))
 # for key in resoucepool:
 #     print(key,resoucepool[key])
 

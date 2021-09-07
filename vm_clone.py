@@ -19,18 +19,6 @@ def wait_for_task(task):
             print(task.info.error)
             task_done = True
 
-def update_nic():
-    #修改网卡
-    pass
-
-def add_nic():
-    #添加网卡
-    pass
-
-def add_disk():
-    #添加磁盘
-    pass
-
 def clone_vm(content,**args):
     """
         功能：克隆虚拟机，并且能在克隆的过程中设置虚拟机的网络信息，资源信息，等。
@@ -79,6 +67,7 @@ def clone_vm(content,**args):
     clonespec.powerOn = vmargs.power_on
     #调整虚拟机cpu、内存
     if any([vmargs.vm_cpu_nums,vmargs.vm_cpu_core_slot,vmargs.vm_memGB]):
+        #此处缺少一个判断vm_cpu_nums必须是vm_cpu_core_slot的倍数
         vmconf = config_vm_cpu_mem(cpu_nums=vmargs.vm_cpu_nums,cpu_cores=vmargs.vm_cpu_core_slot,memGB=vmargs.vm_memGB)
         clonespec.config = vmconf
     #修改网络配置和主机名

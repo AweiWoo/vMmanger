@@ -22,6 +22,12 @@ def config_vm_cpu_mem(cpu_nums=None,cpu_cores=None,memGB=None):
         vimconf.memoryMB = memGB * 1024
     return vimconf
 
+def config_vm_add_nic():
+    pass
+
+def config_vm_add_disk():
+    pass
+
 if __name__ == "__main__":
     vm_name = "wwu-clone"
     cpu_nums = 8

@@ -18,6 +18,9 @@ def wait_for_task(task):
             print("there was an error")
             print(task.info.error)
             task_done = True
+            
+def add_description():
+    pass
 
 def clone_vm(content,**args):
     """

@@ -40,7 +40,7 @@ def config_vm_add_nic(nic_name,nic_type):
     elif nic_type == "E1000e":
         nic_spec.device = vim.vm.device.VirtualE1000e()
     elif nic_type == "Vmxnet2":
-        nic_spec.device = vim.vm.device.VirtualVmxnet2()
+        nic_spec.device = vim.vm.device.VirtualVmxnet2() 
     elif nic_type == "Vmxnet3":
         nic_spec.device = vim.vm.device.VirtualVmxnet3Vrdma()
     if nic_name:
@@ -66,34 +66,41 @@ def config_vm_add_disk(vm,disk_size,disk_type=None):
         功能：给虚拟机添加磁盘
         参数：
             disk_size: 磁盘大小（GB）
-            disk_type:
+            disk_type: 磁盘类型，默认为：厚置备延迟置零，可选择参数“thin”设置为：Thin Provision类型磁盘
     """
     vmconf = vim.vm.ConfigSpec()
     unit_number = 0
     controller = None
+    #查询虚拟机已经存在的磁盘控制器，在次基础上+1，
     for device in vm.config.hardware.device:
         if hasattr(device.backing, 'fileName'):
-            unit_number = int(device.unitNumber) + 1024
+            unit_number = int(device.unitNumber) + 1
         if isinstance(device, vim.vm.device.VirtualSCSIController):
             controller = device
     if controller is None:
         print('Disk SCSI controller not found !')
     dev_changes=[]
+    #添加的磁盘大小
     new_disk_kb = int(disk_size) * 1024 * 1024
     disk_spec = vim.vm.device.VirtualDeviceSpec()
+    #磁盘都会生成一个.vmdk的文件，fileOperation操作就是创建一个磁盘文件
     disk_spec.fileOperation = "create"
+    #添加磁盘
     disk_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
     disk_spec.device = vim.vm.device.VirtualDisk()
+    #Flat类型磁盘，应该是厚置备延迟置零类型（默认类型），使用thin参数，可以调整为Thin Provision类型磁盘
     disk_spec.device.backing = vim.vm.device.VirtualDisk.FlatVer2BackingInfo()
     if disk_type == 'thin':
         disk_spec.device.backing.thinProvisioned = True
+    #磁盘模式为持久性
     disk_spec.device.backing.diskMode = 'persistent'
     disk_spec.device.capacityInKB =  new_disk_kb
     disk_spec.device.unitNumber = unit_number
     disk_spec.device.controllerKey = controller.key
     dev_changes.append(disk_spec)
     vmconf.deviceChange=dev_changes
-    return vmconf
+    vm.Reconfigure(vmconf)
+    print("%sGB disk added to %s" % (disk_size,vm.config.name))
 
 if __name__ == "__main__":
     content = si.RetrieveContent()
@@ -109,9 +116,7 @@ if __name__ == "__main__":
     # vm_conf = config_vm_add_nic(nic_name="20",nic_type="Vmxnet3")
 
     #添加磁盘
-    vm_conf = config_vm_add_disk(host,50,'thin')
-    task=host.Reconfigure(vm_conf)
-    print(task.info)
+    config_vm_add_disk(host,50)
 
 
 

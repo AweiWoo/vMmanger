@@ -7,7 +7,7 @@ from lib import pchelper
 from lib.login import si
 from collections import namedtuple
 from custom_spec import update_vm_customspec
-from config_spec import config_vm_cpu_mem
+from config_spec import config_vm_cpu_mem,config_vm_add_disk
 
 def wait_for_task(task):
     task_done = False
@@ -31,7 +31,7 @@ def clone_vm(content,**args):
     VM_ARGS = namedtuple('args',['template','vm_name','datacenter_name','vm_folder','datastore_name',
                             'cluster_name','resource_pool','power_on',
                             'vm_ip','vm_subnet','vm_gateway','vm_dns','vm_dnsDomain','vm_hostname',
-                            'vm_cpu_nums','vm_cpu_core_slot','vm_memGB'])                       
+                            'vm_cpu_nums','vm_cpu_core_slot','vm_memGB','add_vmdiskGB'])                       
     vmargs = VM_ARGS(**args)
     #模板
     if vmargs.template:
@@ -73,6 +73,7 @@ def clone_vm(content,**args):
         #此处缺少一个判断vm_cpu_nums必须是vm_cpu_core_slot的倍数
         vmconf = config_vm_cpu_mem(cpu_nums=vmargs.vm_cpu_nums,cpu_cores=vmargs.vm_cpu_core_slot,memGB=vmargs.vm_memGB)
         clonespec.config = vmconf
+    
     #修改网络配置和主机名
     if all([vmargs.vm_ip,vmargs.vm_subnet,vmargs.vm_gateway]):
         clonespec.customization = update_vm_customspec(vmargs.vm_ip,vmargs.vm_subnet,
@@ -83,6 +84,13 @@ def clone_vm(content,**args):
     task = template.Clone(folder=destfolder,name=vmargs.vm_name,spec=clonespec)
     wait_for_task(task)
     print("Vm cloned")
+    
+    #添加磁盘
+    if vmargs.add_vmdiskGB:
+        print('need add disk')
+        host = pchelper.get_obj(content,[vim.VirtualMachine],vmargs.vm_name)
+        config_vm_add_disk(host,vmargs.add_vmdiskGB)
+
 
 def main():
     content = si.RetrieveContent()
@@ -103,7 +111,8 @@ def main():
         "vm_hostname":"wwu-clone",
         "vm_cpu_nums":8,
         "vm_cpu_core_slot":4,
-        "vm_memGB":8
+        "vm_memGB":8,
+        "add_vmdiskGB": 50
     }
     clone_vm(content,**clone_info)
 

@@ -90,6 +90,8 @@ def clone_vm(content,**args):
         print('need add disk')
         host = pchelper.get_obj(content,[vim.VirtualMachine],vmargs.vm_name)
         config_vm_add_disk(host,vmargs.add_vmdiskGB)
+    
+    #添加网卡
 
 
 def main():

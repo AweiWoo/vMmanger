@@ -65,6 +65,7 @@ def config_vm_add_disk(vm,disk_size,disk_type=None):
     """
         功能：给虚拟机添加磁盘
         参数：
+            vm: 虚拟机对象
             disk_size: 磁盘大小（GB）
             disk_type: 磁盘类型，默认为：厚置备延迟置零，可选择参数“thin”设置为：Thin Provision类型磁盘
     """
@@ -102,6 +103,17 @@ def config_vm_add_disk(vm,disk_size,disk_type=None):
     vm.Reconfigure(vmconf)
     print("%sGB disk added to %s" % (disk_size,vm.config.name))
 
+def add_description(vm,description):
+    """
+        功能：给虚拟机添加注释
+        参数：
+            vm: 虚拟机对象
+            description: 备注 
+    """
+    vmconf = vim.vm.ConfigSpec()
+    vmconf.annotation = description
+    vm.Reconfigure(vmconf)
+
 if __name__ == "__main__":
     content = si.RetrieveContent()
     vm_name = "wwu-clone"
@@ -116,7 +128,11 @@ if __name__ == "__main__":
     # vm_conf = config_vm_add_nic(nic_name="20",nic_type="Vmxnet3")
 
     #添加磁盘
-    config_vm_add_disk(host,50)
+    #config_vm_add_disk(host,50)
+
+    #添加备注
+    message = "功能：wwu的克隆测试虚拟机\n操作系统：centos7\nroot密码：thzk2**"
+    add_description(host,message)
 
 
 

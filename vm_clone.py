@@ -9,6 +9,7 @@ from collections import namedtuple
 from custom_spec import update_vm_customspec
 from config_spec import config_vm_cpu_mem,config_vm_add_disk,add_description
 from lib.opexcel import MyExcel
+import asyncio
 
 def wait_for_task(task):
     task_done = False
@@ -20,7 +21,7 @@ def wait_for_task(task):
             print(task.info.error)
             task_done = True
 
-def clone_vm(content,**args):
+async def clone_vm(content,**args):
     """
         功能：克隆虚拟机，并且能在克隆的过程中设置虚拟机的网络信息，资源信息，等。
         参数：
@@ -94,10 +95,9 @@ def clone_vm(content,**args):
         print('need add vm description')
         add_description(host,vmargs.vm_note)
 
-def main():
+async def main():
     content = si.RetrieveContent()
     myxls = MyExcel('./data/vm_info.xls')
-    myxls.get_sheets_name()
     clone_vm_list = myxls.get_execl_data('test')
     for clone_info in clone_vm_list: 
         clone_vm(content,**clone_info)

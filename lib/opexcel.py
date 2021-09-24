@@ -3,6 +3,7 @@
 # author: wwu
 
 import xlrd
+from collections import deque
 
 class MyExcel:
     def __init__(self,file_path):
@@ -31,4 +32,14 @@ class MyExcel:
                 for i in range(len(rows_first)):
                     vm_dict[rows_first[i]] = row[i]
                 vm_list.append(vm_dict)
-            return vm_list
+            return deque(vm_list)
+        
+if __name__ == "__main__":
+    myxls = MyExcel('./data/vm_info.xls')
+    clone_vm_list = myxls.get_execl_data('test')
+    import time
+    for _ in range(5):
+        print(clone_vm_list.popleft())
+        time.sleep(5)
+    
+    

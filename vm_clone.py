@@ -7,7 +7,9 @@ from lib import pchelper
 from lib.login import si
 from collections import namedtuple
 from custom_spec import update_vm_customspec
-from config_spec import config_vm_cpu_mem
+from config_spec import config_vm_cpu_mem,config_vm_add_disk,add_description
+from lib.opexcel import MyExcel
+import asyncio
 
 def wait_for_task(task):
     task_done = False
@@ -19,7 +21,7 @@ def wait_for_task(task):
             print(task.info.error)
             task_done = True
 
-def clone_vm(content,**args):
+async def clone_vm(content,**args):
     """
         功能：克隆虚拟机，并且能在克隆的过程中设置虚拟机的网络信息，资源信息，等。
         参数：
@@ -28,7 +30,7 @@ def clone_vm(content,**args):
     VM_ARGS = namedtuple('args',['template','vm_name','datacenter_name','vm_folder','datastore_name',
                             'cluster_name','resource_pool','power_on',
                             'vm_ip','vm_subnet','vm_gateway','vm_dns','vm_dnsDomain','vm_hostname',
-                            'vm_cpu_nums','vm_cpu_core_slot','vm_memGB'])                       
+                            'vm_cpu_nums','vm_cpu_core_slot','vm_memGB','add_vmdiskGB','vm_note'])                       
     vmargs = VM_ARGS(**args)
     #模板
     if vmargs.template:
@@ -68,8 +70,9 @@ def clone_vm(content,**args):
     #调整虚拟机cpu、内存
     if any([vmargs.vm_cpu_nums,vmargs.vm_cpu_core_slot,vmargs.vm_memGB]):
         #此处缺少一个判断vm_cpu_nums必须是vm_cpu_core_slot的倍数
-        vmconf = config_vm_cpu_mem(cpu_nums=vmargs.vm_cpu_nums,cpu_cores=vmargs.vm_cpu_core_slot,memGB=vmargs.vm_memGB)
+        vmconf = config_vm_cpu_mem(cpu_nums=int(vmargs.vm_cpu_nums),cpu_cores=int(vmargs.vm_cpu_core_slot),memGB=int(vmargs.vm_memGB))
         clonespec.config = vmconf
+    
     #修改网络配置和主机名
     if all([vmargs.vm_ip,vmargs.vm_subnet,vmargs.vm_gateway]):
         clonespec.customization = update_vm_customspec(vmargs.vm_ip,vmargs.vm_subnet,
@@ -80,29 +83,27 @@ def clone_vm(content,**args):
     task = template.Clone(folder=destfolder,name=vmargs.vm_name,spec=clonespec)
     wait_for_task(task)
     print("Vm cloned")
+    
+    #克隆后操作
+    host = pchelper.get_obj(content,[vim.VirtualMachine],vmargs.vm_name)
+    #添加磁盘
+    if vmargs.add_vmdiskGB:
+        print('need add disk')
+        config_vm_add_disk(host,int(vmargs.add_vmdiskGB))
+    #添加虚拟机备注
+    if vmargs.vm_note:
+        print('need add vm description')
+        add_description(host,vmargs.vm_note)
 
-def main():
+async def main(number):
     content = si.RetrieveContent()
-    clone_info = {
-        "template":"k8s-nginx1",
-        "vm_name":"wwu-clone",
-        "datacenter_name":"cenboomh",
-        "vm_folder":"test",
-        "datastore_name":"devops_pool",
-        "cluster_name":"devops",
-        "resource_pool":"",
-        "power_on":True,
-        "vm_ip":"192.168.10.250",
-        "vm_subnet":"255.255.255.0",
-        "vm_gateway":"192.168.10.254",
-        "vm_dns":"",
-        "vm_dnsDomain":"",
-        "vm_hostname":"wwu-clone",
-        "vm_cpu_nums":8,
-        "vm_cpu_core_slot":4,
-        "vm_memGB":8
-    }
-    clone_vm(content,**clone_info)
+    myxls = MyExcel('./data/vm_info.xls')
+    clone_vm_list = myxls.get_execl_data('test')
+    task_list = []
+    if len(task_list) < number:
+        clone_info=clone_vm_list.popleft()
+        await clone_vm(content,**clone_info)
 
 if __name__ == '__main__':
+    #实现目标：同时保持N个线程或携程在运行克隆，一个线程结束，启动一个新线程，永远保持N个虚拟机在克隆，直到所有虚拟机都克隆完成。
     main()

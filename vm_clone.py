@@ -103,4 +103,5 @@ def main():
         clone_vm(content,**clone_info)
 
 if __name__ == '__main__':
+    #实现目标：同时保持N个线程或携程在运行克隆，一个线程结束，启动一个新线程，永远保持N个虚拟机在克隆，直到所有虚拟机都克隆完成。
     main()

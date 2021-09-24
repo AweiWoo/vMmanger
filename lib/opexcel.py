@@ -32,10 +32,3 @@ class MyExcel:
                     vm_dict[rows_first[i]] = row[i]
                 vm_list.append(vm_dict)
             return vm_list
-
-if __name__ == '__main__':
-    myxls = MyExcel('./data/vm_info.xls')
-    myxls.get_sheets_name()
-    result = myxls.get_execl_data('test')
-    print(result)
-    

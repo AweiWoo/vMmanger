@@ -95,12 +95,14 @@ async def clone_vm(content,**args):
         print('need add vm description')
         add_description(host,vmargs.vm_note)
 
-async def main():
+async def main(number):
     content = si.RetrieveContent()
     myxls = MyExcel('./data/vm_info.xls')
     clone_vm_list = myxls.get_execl_data('test')
-    for clone_info in clone_vm_list: 
-        clone_vm(content,**clone_info)
+    task_list = []
+    if len(task_list) < number:
+        clone_info=clone_vm_list.popleft()
+        await clone_vm(content,**clone_info)
 
 if __name__ == '__main__':
     #实现目标：同时保持N个线程或携程在运行克隆，一个线程结束，启动一个新线程，永远保持N个虚拟机在克隆，直到所有虚拟机都克隆完成。

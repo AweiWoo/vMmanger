@@ -2,6 +2,7 @@
 # -*- coding:UTF-8 -*-
 # author: wwu
 
+from re import T
 from pyVmomi import vim
 from lib import pchelper
 from lib.login import si
@@ -11,7 +12,7 @@ from config_spec import config_vm_cpu_mem,config_vm_add_disk,add_description
 from lib.opexcel import MyExcel
 import asyncio
 
-def wait_for_task(task):
+async def wait_for_task(task):
     task_done = False
     while not task_done:
         if task.info.state == 'success':
@@ -20,6 +21,8 @@ def wait_for_task(task):
             print("there was an error")
             print(task.info.error)
             task_done = True
+        await asyncio.sleep(0)
+
 
 async def clone_vm(content,**args):
     """
@@ -79,10 +82,10 @@ async def clone_vm(content,**args):
                                                 vmargs.vm_gateway,vmargs.vm_dns,
                                                 vmargs.vm_dnsDomain,vmargs.vm_hostname)
     #开始克隆任务
-    print("cloinging VM...")
+    print("beging cloinging",vmargs.vm_name)
     task = template.Clone(folder=destfolder,name=vmargs.vm_name,spec=clonespec)
-    wait_for_task(task)
-    print("Vm cloned")
+    await wait_for_task(task)
+    print(vmargs.vm_name,"Vm cloned")
     
     #克隆后操作
     host = pchelper.get_obj(content,[vim.VirtualMachine],vmargs.vm_name)
@@ -95,15 +98,26 @@ async def clone_vm(content,**args):
         print('need add vm description')
         add_description(host,vmargs.vm_note)
 
+async def add_clone_task(content,clone_vm_list,number):
+    while True:
+        task_num = len(asyncio.all_tasks())
+        if  task_num < number: 
+            print("async_task:",len(asyncio.all_tasks()))
+            for _ in range(number-task_num+1):
+                clone_info=clone_vm_list.popleft()
+                asyncio.create_task(clone_vm(content,**clone_info))
+                print(task_num)
+                print("clone_vm_list,",len(clone_vm_list))
+                await asyncio.sleep(0)               
+        if len(clone_vm_list) == 0 :
+            exit(1)
+
 async def main(number):
     content = si.RetrieveContent()
     myxls = MyExcel('./data/vm_info.xls')
     clone_vm_list = myxls.get_execl_data('test')
-    task_list = []
-    if len(task_list) < number:
-        clone_info=clone_vm_list.popleft()
-        await clone_vm(content,**clone_info)
+    await add_clone_task(content,clone_vm_list,number)
 
 if __name__ == '__main__':
-    #实现目标：同时保持N个线程或携程在运行克隆，一个线程结束，启动一个新线程，永远保持N个虚拟机在克隆，直到所有虚拟机都克隆完成。
-    main()
+    #实现目标：同时保持N个线程或协程在运行克隆，一个线程结束，启动一个新线程，永远保持N个虚拟机在克隆，直到所有虚拟机都克隆完成。
+    asyncio.run(main(2))

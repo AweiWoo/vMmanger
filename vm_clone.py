@@ -16,7 +16,7 @@ async def wait_for_task(task):
     task_done = False
     while not task_done:
         if task.info.state == 'success':
-            return task.info.result
+            print(task.info.result)
         if task.info.state == 'error':
             print("there was an error")
             print(task.info.error)
@@ -101,16 +101,15 @@ async def clone_vm(content,**args):
 async def add_clone_task(content,clone_vm_list,number):
     while True:
         task_num = len(asyncio.all_tasks())
-        if  task_num < number: 
+        if  task_num < number+1: 
             print("async_task:",len(asyncio.all_tasks()))
-            for _ in range(number-task_num+1):
-                clone_info=clone_vm_list.popleft()
-                asyncio.create_task(clone_vm(content,**clone_info))
-                print(task_num)
-                print("clone_vm_list,",len(clone_vm_list))
-                await asyncio.sleep(0)               
-        if len(clone_vm_list) == 0 :
-            exit(1)
+            clone_info=clone_vm_list.popleft()
+            asyncio.create_task(clone_vm(content,**clone_info))
+            print("clone_vm_list,",len(clone_vm_list))
+            await asyncio.sleep(0)               
+        if len(clone_vm_list) == 0:
+            print('all vm clone done')
+            break
 
 async def main(number):
     content = si.RetrieveContent()

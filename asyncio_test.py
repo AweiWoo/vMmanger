@@ -11,7 +11,7 @@ async def clone_vm(**clone_info):
     print(clone_info)
     print('-------------------------------------------')
     time.sleep(5)
-    await asyncio.sleep(0)
+    #await asyncio.sleep(0)
     
 
 async def main(number):

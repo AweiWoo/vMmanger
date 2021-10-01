@@ -98,24 +98,24 @@ async def clone_vm(content,**args):
         print('need add vm description')
         add_description(host,vmargs.vm_note)
 
-async def add_clone_task(content,clone_vm_list,number):
-    while True:
-        task_num = len(asyncio.all_tasks())
-        if  task_num < number+1: 
-            print("async_task:",len(asyncio.all_tasks()))
-            clone_info=clone_vm_list.popleft()
-            asyncio.create_task(clone_vm(content,**clone_info))
-            print("clone_vm_list,",len(clone_vm_list))
-            await asyncio.sleep(0)               
-        if len(clone_vm_list) == 0:
-            print('all vm clone done')
-            break
-
 async def main(number):
     content = si.RetrieveContent()
     myxls = MyExcel('./data/vm_info.xls')
     clone_vm_list = myxls.get_execl_data('test')
-    await add_clone_task(content,clone_vm_list,number)
+    while True:
+        print(asyncio.all_tasks())
+        num = abs(len(asyncio.all_tasks()) - number - 1)
+        task_list=[]
+        for _ in range(num):
+            try:
+                clone_info=clone_vm_list.popleft()
+                task_list.append(asyncio.create_task(clone_vm(**clone_info)))
+            except IndexError as e:
+                pass
+        done = await asyncio.wait(task_list)
+        if len(clone_vm_list) == 0:
+            print('clone done')
+            break
 
 if __name__ == '__main__':
     #实现目标：同时保持N个线程或协程在运行克隆，一个线程结束，启动一个新线程，永远保持N个虚拟机在克隆，直到所有虚拟机都克隆完成。

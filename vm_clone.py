@@ -108,7 +108,7 @@ async def main(number):
     clone_vm_list = myxls.get_execl_data('test')
     while True:
         print(asyncio.all_tasks())
-        #main函数本身也是一个协程任务，必须要去掉这个
+        #获取协程任务数和设定任务数的差值绝对值，其中main函数本身也是一个协程任务，必须要去掉这个。根据差值遍历创建协程任务
         num = abs(len(asyncio.all_tasks()) - number - 1)
         task_list=[]
         for _ in range(num):

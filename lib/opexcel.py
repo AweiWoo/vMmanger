@@ -22,8 +22,7 @@ class MyExcel:
             table = self.xlsdata.sheet_by_name(sheet_name)
             #获取行数
             rows = table.nrows
-            #获取列数
-            cols = table.ncols
+            #获取第一行标题行数据
             rows_first = table.row_values(0)
             vm_list=[]
             for n in range(1,rows):
@@ -39,7 +38,10 @@ if __name__ == "__main__":
     clone_vm_list = myxls.get_execl_data('test')
     import time
     for _ in range(5):
-        print(clone_vm_list.popleft())
-        time.sleep(5)
+        try:    
+            print(clone_vm_list.popleft())
+            time.sleep(1)
+        except IndexError as e:
+            pass
     
     

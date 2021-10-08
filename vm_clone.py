@@ -86,7 +86,7 @@ def main():
     clone_info = {
         "template":"k8s-nginx1",
         "vm_name":"wwu-clone",
-        "datacenter_name":"cenboomh",
+        "datacenter_name":"xxxxx",
         "vm_folder":"test",
         "datastore_name":"devops_pool",
         "cluster_name":"devops",

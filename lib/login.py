@@ -9,7 +9,7 @@ VMLogin = namedtuple('info',['host','user','pwd','port'])
 
 def vm_info():
     info={
-        "host":"192.168.10.200",
+        "host":"192.168.10.xxx",
         "user":"xxxxx",
         "pwd":"xxxxx",
         "port":"443"

@@ -12,18 +12,7 @@ from config_spec import config_vm_cpu_mem,config_vm_add_disk,add_description
 from lib.opexcel import MyExcel
 import asyncio
 
-async def wait_for_task(task):
-    task_done = False
-    while not task_done:
-        if task.info.state == 'success':
-            print(task.info.result)
-        if task.info.state == 'error':
-            print("there was an error")
-            print(task.info.error)
-            task_done = True
-        await asyncio.sleep(0)
-
-
+#协程函数：克隆虚拟机
 async def clone_vm(content,**args):
     """
         功能：克隆虚拟机，并且能在克隆的过程中设置虚拟机的网络信息，资源信息，等。
@@ -82,23 +71,38 @@ async def clone_vm(content,**args):
                                                 vmargs.vm_gateway,vmargs.vm_dns,
                                                 vmargs.vm_dnsDomain,vmargs.vm_hostname)
     #开始克隆任务
-    print("beging cloinging",vmargs.vm_name)
+    print("开始克隆虚拟机：",vmargs.vm_name)
     task = template.Clone(folder=destfolder,name=vmargs.vm_name,spec=clonespec)
-    await wait_for_task(task)
-    print(vmargs.vm_name,"Vm cloned")
+    task_done = False
+    while not task_done:
+        if task.info.state == 'success':
+            print(vmargs.vm_name,"虚拟机克隆完成")
+            task_done = True
+        if task.info.state == 'error':
+            print("there was an error")
+            print(task.info.error)
+            task_done = True
+        #让出线程，不要等待
+        await asyncio.sleep(0)
     
     #克隆后操作
     host = pchelper.get_obj(content,[vim.VirtualMachine],vmargs.vm_name)
     #添加磁盘
     if vmargs.add_vmdiskGB:
-        print('need add disk')
+        print(vmargs.vm_name,'需要添加磁盘，大小：',vmargs.add_vmdiskGB,'GB')
         config_vm_add_disk(host,int(vmargs.add_vmdiskGB))
     #添加虚拟机备注
     if vmargs.vm_note:
-        print('need add vm description')
+        print(vmargs.vm_name,'虚拟机添加备注信息：',vmargs.vm_note)
         add_description(host,vmargs.vm_note)
 
+#实现目标：同时保持N个线程或协程在运行克隆，一个线程结束，启动一个新线程，永远保持N个虚拟机在克隆，直到所有虚拟机都克隆完成。
 async def main(number):
+    """ 
+        功能：主函数
+        参数：
+            number: 并行执行克隆虚拟机的数量。对于已经在线运行的vmCenter生产环境，请酌情控制此值,避免造成性能影响。
+    """
     content = si.RetrieveContent()
     myxls = MyExcel('./data/vm_info.xls')
     clone_vm_list = myxls.get_execl_data('test')
@@ -109,14 +113,13 @@ async def main(number):
         for _ in range(num):
             try:
                 clone_info=clone_vm_list.popleft()
-                task_list.append(asyncio.create_task(clone_vm(**clone_info)))
+                task_list.append(asyncio.create_task(clone_vm(content,**clone_info)))
             except IndexError as e:
                 pass
         done = await asyncio.wait(task_list)
         if len(clone_vm_list) == 0:
-            print('clone done')
+            print('克隆任务完成') 
             break
 
 if __name__ == '__main__':
-    #实现目标：同时保持N个线程或协程在运行克隆，一个线程结束，启动一个新线程，永远保持N个虚拟机在克隆，直到所有虚拟机都克隆完成。
     asyncio.run(main(2))

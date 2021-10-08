@@ -32,7 +32,7 @@ async def main(number):
             print('clone done')
             break
 
-asyncio.run(main(3))
+asyncio.run(main(2))
 
 
 

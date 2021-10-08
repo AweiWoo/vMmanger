@@ -20,7 +20,7 @@ def update_vm_customspec(vm_ip=None,vm_subnet=None,vm_gateway=None,vm_dns=None,v
         netinfo.adapter.dnsDomain = vm_dnsDomain
     adapter_list.append(netinfo)
 
-    #设置DNS，GlobalIPSettings这里要理解为dns的全球ip(比如：202.103.24.68)
+    #设置DNS，GlobalIPSettings这里要理解为dns(比如：202.103.24.68),linux中DNS的静态地址属于一种globalIP
     gloablip = vim.vm.customization.GlobalIPSettings()
     if vm_dns:
         gloablip.dnsServerList=[vm_dns]
